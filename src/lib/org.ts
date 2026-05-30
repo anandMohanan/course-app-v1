@@ -885,20 +885,37 @@ export const adminUpdateOrganizationSettings = createServerFn({ method: "POST" }
 const adminInviteInput = z.object({
   actorUserId: z.string().min(1),
   orgId: z.string().min(1),
-  targetUserId: z.string().min(1),
+  targetUserId: z.string().min(1).optional(),
+  targetUserEmail: z.string().optional(),
   role: z.enum(orgRoles),
   status: z.enum(memberStatuses).default("invited"),
+}).refine((value) => value.targetUserId || value.targetUserEmail, {
+  message: "Provide either targetUserId or targetUserEmail.",
 });
 
 export const adminInviteMember = createServerFn({ method: "POST" })
   .inputValidator(adminInviteInput)
   .handler(async ({ data }) => {
     await assertOrgInstructorOrAdmin(data.actorUserId, data.orgId);
+    let targetUserId = data.targetUserId;
+
+    if (!targetUserId && data.targetUserEmail) {
+      const resolved = await resolveOrProvisionUserByEmail(data.targetUserEmail);
+      targetUserId = resolved.userId;
+      if (!targetUserId) {
+        throw new Error(resolved.error ?? "Could not resolve user from email.");
+      }
+    }
+
+    if (!targetUserId) {
+      throw new Error("Provide either targetUserId or targetUserEmail.");
+    }
+
     return addOrganizationMember({
       data: {
         actorUserId: data.actorUserId,
         orgId: data.orgId,
-        targetUserId: data.targetUserId,
+        targetUserId,
         role: data.role,
         status: data.status,
       },
@@ -924,7 +941,7 @@ export const adminAssignCourse = createServerFn({ method: "POST" })
               { id: data.memberId },
               { "organization.id": data.orgId },
               { role: "learner" },
-              { status: "active" },
+              { status: { $in: ["active", "invited"] } },
             ],
           },
         },
@@ -942,7 +959,7 @@ export const adminAssignCourse = createServerFn({ method: "POST" })
     };
 
     if ((memberCheck.organizationMembers ?? []).length === 0) {
-      throw new Error("Course can be assigned only to active learners.");
+      throw new Error("Course can be assigned only to active or invited learners.");
     }
     if ((memberCheck.courses ?? []).length === 0) {
       throw new Error("Only template courses can be assigned.");

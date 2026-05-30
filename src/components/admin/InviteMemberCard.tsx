@@ -55,11 +55,14 @@ export function InviteMemberCard({
           if (!auth.user || !overview?.organization?.id) return;
 
           try {
+            const normalizedTarget = targetUserId.trim();
+            const isEmailTarget = normalizedTarget.includes("@");
             await inviteFn({
               data: {
                 actorUserId: auth.user.id,
                 orgId: overview.organization.id,
-                targetUserId,
+                targetUserId: isEmailTarget ? undefined : normalizedTarget,
+                targetUserEmail: isEmailTarget ? normalizedTarget : undefined,
                 role: memberRole,
                 status: memberStatus,
               },
@@ -74,13 +77,13 @@ export function InviteMemberCard({
       >
         <div>
           <FieldLabel
-            label="Target user ID"
-            help="Instant user ID to invite into this organization."
+            label="Target user email or ID"
+            help="Use email to invite users before signup, or Instant user ID for existing users."
           />
           <Input
             value={targetUserId}
             onChange={(event) => setTargetUserId(event.target.value)}
-            placeholder="Instant user ID"
+            placeholder="name@school.edu or Instant user ID"
             required
           />
         </div>
