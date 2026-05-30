@@ -35,7 +35,7 @@ export function AdminCourseDetailSection({ courseId }: { courseId: string }) {
     auth,
     overview,
     templates,
-    learners,
+    assignableLearners,
     load,
     handleError,
     createSubjectFn,
@@ -205,15 +205,20 @@ export function AdminCourseDetailSection({ courseId }: { courseId: string }) {
             }}
           >
             <div>
-              <FieldLabel label="Add learner" help="Assign this course to an active learner." />
+              <FieldLabel
+                label="Add learner"
+                help="Assign this course to active or invited learners."
+              />
               <Select value={selectedMember} onValueChange={(value) => value && setSelectedMember(value)}>
                 <SelectTrigger>
                   <span className={selectedMember ? undefined : "text-slate-500"}>
-                    {selectedMember ? learners.find((row: any) => row.id === selectedMember)?.user?.email : "Choose learner"}
+                    {selectedMember
+                      ? assignableLearners.find((row: any) => row.id === selectedMember)?.user?.email
+                      : "Choose learner"}
                   </span>
                 </SelectTrigger>
                 <SelectContent>
-                  {learners.map((member: any) => (
+                  {assignableLearners.map((member: any) => (
                     <SelectItem key={member.id} value={member.id}>
                       {member.user?.email ?? member.user?.id ?? member.id}
                     </SelectItem>
@@ -222,15 +227,15 @@ export function AdminCourseDetailSection({ courseId }: { courseId: string }) {
               </Select>
             </div>
 
-            <Button className="self-end" type="submit" disabled={!selectedMember || learners.length === 0}>
+            <Button className="self-end" type="submit" disabled={!selectedMember || assignableLearners.length === 0}>
               Assign Learner
             </Button>
           </form>
 
-          {learners.length === 0 ? (
+          {assignableLearners.length === 0 ? (
             <div className="mt-4">
               <EmptyState
-                title="No active learners"
+                title="No assignable learners"
                 description="Invite or activate learners first from Overview."
               />
             </div>

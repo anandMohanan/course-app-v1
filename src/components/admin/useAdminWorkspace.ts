@@ -163,6 +163,16 @@ export function useAdminWorkspace() {
     [overview?.members],
   );
 
+  const assignableLearners = useMemo(
+    () =>
+      (overview?.members ?? []).filter(
+        (member: any) =>
+          member.role === "learner" &&
+          (member.status === "active" || member.status === "invited"),
+      ),
+    [overview?.members],
+  );
+
   const templates = useMemo(() => overview?.courses ?? [], [overview?.courses]);
 
   const selectedTemplate = useMemo(
@@ -171,8 +181,10 @@ export function useAdminWorkspace() {
   );
 
   const selectedMemberRecord = useMemo(
-    () => learners.find((member: any) => member.id === selectedMember) ?? null,
-    [learners, selectedMember],
+    () =>
+      assignableLearners.find((member: any) => member.id === selectedMember) ??
+      null,
+    [assignableLearners, selectedMember],
   );
 
   const subjects = useMemo(
@@ -222,6 +234,7 @@ export function useAdminWorkspace() {
     setError,
     handleError,
     learners,
+    assignableLearners,
     templates,
     subjects,
     totalSubjects,

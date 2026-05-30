@@ -18,7 +18,7 @@ type AssignCourseCardProps = Pick<
   | "handleError"
   | "assignFn"
   | "templates"
-  | "learners"
+  | "assignableLearners"
   | "selectedCourse"
   | "setSelectedCourse"
   | "selectedCourseName"
@@ -34,7 +34,7 @@ export function AssignCourseCard({
   handleError,
   assignFn,
   templates,
-  learners,
+  assignableLearners,
   selectedCourse,
   setSelectedCourse,
   selectedCourseName,
@@ -46,7 +46,7 @@ export function AssignCourseCard({
     <SectionCard
       icon={<CheckCircle2 className="size-5" />}
       title="Assign Course to Learner"
-      description="Assign a course to an active learner when the course structure is ready."
+      description="Assign a course to active or invited learners. Invited learners will see it after signup."
     >
       <form
         className="mt-5 grid gap-4 lg:grid-cols-[1fr_1fr_auto]"
@@ -107,7 +107,7 @@ export function AssignCourseCard({
         <div>
           <FieldLabel
             label="Learner"
-            help="Only active learner members can receive course assignments."
+            help="Active and invited learners can receive assignments."
           />
           <Select
             value={selectedMember}
@@ -121,7 +121,7 @@ export function AssignCourseCard({
               </span>
             </SelectTrigger>
             <SelectContent>
-              {learners.map((member: any) => (
+              {assignableLearners.map((member: any) => (
                 <SelectItem key={member.id} value={member.id}>
                   {member.user?.email ?? member.user?.id ?? member.id}
                 </SelectItem>
@@ -148,10 +148,10 @@ export function AssignCourseCard({
         </div>
       )}
 
-      {templates.length > 0 && learners.length === 0 && (
+      {templates.length > 0 && assignableLearners.length === 0 && (
         <div className="mt-4">
           <EmptyState
-            title="No active learners"
+            title="No assignable learners"
             description="Invite or activate a learner before assigning a course."
           />
         </div>
